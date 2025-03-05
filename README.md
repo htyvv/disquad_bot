@@ -1,136 +1,35 @@
-# Python Discord Bot Template
+# Discord Bot
 
-<p align="center">
-  <a href="https://discord.gg/mTBrXyWxAF"><img src="https://img.shields.io/discord/739934735387721768?logo=discord"></a>
-  <a href="https://github.com/kkrypt0nn/Python-Discord-Bot-Template/releases"><img src="https://img.shields.io/github/v/release/kkrypt0nn/Python-Discord-Bot-Template"></a>
-  <a href="https://github.com/kkrypt0nn/Python-Discord-Bot-Template/commits/main"><img src="https://img.shields.io/github/last-commit/kkrypt0nn/Python-Discord-Bot-Template"></a>
-  <a href="https://github.com/kkrypt0nn/Python-Discord-Bot-Template/blob/main/LICENSE.md"><img src="https://img.shields.io/github/license/kkrypt0nn/Python-Discord-Bot-Template"></a>
-  <a href="https://github.com/kkrypt0nn/Python-Discord-Bot-Template"><img src="https://img.shields.io/github/languages/code-size/kkrypt0nn/Python-Discord-Bot-Template"></a>
-  <a href="https://conventionalcommits.org/en/v1.0.0/"><img src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white"></a>
-  <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
-</p>
+이 프로젝트는 Discord 서버에서 롤 내전에 필요한 편리한 기능을 제공하는 봇입니다. 이 봇은 내전 일정 투표 및 관리 부터 참가자 관리, 도움말 제공 등 여러 기능을 지원합니다.
 
-This repository is a template that everyone can use for the start of their Discord bot.
+## 주요 기능
 
-When I first started creating my Discord bot it took me a while to get everything setup and working with cogs and more.
-I would've been happy if there were any template existing. However, there wasn't any existing template. That's why I
-decided to create my own template to let **you** guys create your Discord bot easily.
+- **도움말 시스템**: 사용 가능한 모든 명령어를 확인할 수 있습니다.
+- **참가자 관리**: 참가 신청, 취소, 참가자 목록 확인, 팀 배정 등의 기능을 제공합니다.
+- **일정 투표**: 내전 일정을 투표로 결정할 수 있습니다.
+- **데이터베이스 관리**: 참가자 정보, 투표 결과 등을 데이터베이스에 저장하고 관리합니다.
 
-Please note that this template is not supposed to be the best template, but a good template to start learning how
-discord.py works and to make your own bot easily.
+## 사용법
 
-If you plan to use this template to make your own template or bot, you **have to**:
+- **도움말 명령어**: `/도움` 명령어를 사용하여 봇의 모든 명령어를 확인할 수 있습니다.
+- **참가자 관리 명령어**:
+  - `/참가`: 내전 참가 신청
+  - `/참가취소`: 참가 신청 취소
+  - `/참가자목록`: 현재 참가자 목록 확인
+  - `/팀배정`: 참가자들을 랜덤으로 팀 배정
+- **일정 투표 명령어**:
+  - `/내전일정생성`: 투표할 날짜들을 입력하여 일정 투표 생성
+  - `/투표마감`: 투표를 마감하고 결과 발표
 
-- Keep the credits, and a link to this repository in all the files that contains my code
-- Keep the same license for unchanged code
+## 기여 방법
 
-See [the license file](https://github.com/kkrypt0nn/Python-Discord-Bot-Template/blob/master/LICENSE.md) for more
-information, I reserve the right to take down any repository that does not meet these requirements.
+1. 이 저장소를 포크합니다.
+2. 새로운 브랜치를 생성합니다.
+3. 변경 사항을 커밋합니다.
+4. 브랜치에 푸시합니다.
+5. 풀 리퀘스트를 생성합니다.
 
-## Support
 
-Before requesting support, you should know that this template requires you to have at least a **basic knowledge** of
-Python and the library is made for **advanced users**. Do not use this template if you don't know the
-basics or some advanced topics such as OOP or async. [Here's](https://pythondiscord.com/pages/resources) a link for resources to learn python.
+## 문의
 
-If you need some help for something, do not hesitate to join my Discord server [here](https://discord.gg/mTBrXyWxAF).
-
-All the updates of the template are available [here](UPDATES.md).
-
-## Disclaimer
-
-Slash commands can take some time to get registered globally, so if you want to test a command you should use
-the `@app_commands.guilds()` decorator so that it gets registered instantly. Example:
-
-```py
-@commands.hybrid_command(
-  name="command",
-  description="Command description",
-)
-@app_commands.guilds(discord.Object(id=GUILD_ID)) # Place your guild ID here
-```
-
-When using the template you confirm that you have read the [license](LICENSE.md) and comprehend that I can take down
-your repository if you do not meet these requirements.
-
-## How to download it
-
-This repository is now a template, on the top left you can simply click on "**Use this template**" to create a GitHub
-repository based on this template.
-
-Alternatively you can do the following:
-
-- Clone/Download the repository
-  - To clone it and get the updates you can definitely use the command
-    `git clone`
-- Create a Discord bot [here](https://discord.com/developers/applications)
-- Get your bot token
-- Invite your bot on servers using the following invite:
-  https://discord.com/oauth2/authorize?&client_id=YOUR_APPLICATION_ID_HERE&scope=bot+applications.commands&permissions=PERMISSIONS (
-  Replace `YOUR_APPLICATION_ID_HERE` with the application ID and replace `PERMISSIONS` with the required permissions
-  your bot needs that it can be get at the bottom of a this
-  page https://discord.com/developers/applications/YOUR_APPLICATION_ID_HERE/bot)
-
-## How to set up
-
-To set up the bot it was made as simple as possible.
-
-### `config.json` file
-
-There is [`config.json`](config.json) file where you can put the
-needed things to edit.
-
-Here is an explanation of what everything is:
-
-| Variable                  | What it is                                     |
-| ------------------------- | ---------------------------------------------- |
-| YOUR_BOT_PREFIX_HERE      | The prefix you want to use for normal commands |
-| YOUR_BOT_INVITE_LINK_HERE | The link to invite the bot                     |
-
-### `.env` file
-
-To set up the token you will have to make use of the [`.env.example`](.env.example) file, you should rename it to `.env` and replace `YOUR_BOT_TOKEN_HERE` with your actual bot's token.
-
-Alternatively you can simply create an environment variable named `TOKEN`.
-
-## How to start
-
-To start the bot you simply need to launch, either your terminal (Linux, Mac & Windows), or your Command Prompt (
-Windows)
-.
-
-Before running the bot you will need to install all the requirements with this command:
-
-```
-python -m pip install -r requirements.txt
-```
-
-After that you can start it with
-
-```
-python bot.py
-```
-
-> **Note** You may need to replace `python` with `py`, `python3`, `python3.11`, etc. depending on what Python versions you have installed on the machine.
-
-## Issues or Questions
-
-If you have any issues or questions of how to code a specific command, you can:
-
-- Join my Discord server [here](https://discord.gg/mTBrXyWxAF)
-- Post them [here](https://github.com/kkrypt0nn/Python-Discord-Bot-Template/issues)
-
-Me or other people will take their time to answer and help you.
-
-## Versioning
-
-We use [SemVer](http://semver.org) for versioning. For the versions available, see
-the [tags on this repository](https://github.com/kkrypt0nn/Python-Discord-Bot-Template/tags).
-
-## Built With
-
-- [Python 3.11.5](https://www.python.org/)
-
-## License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE.md](LICENSE.md) file for details
+프로젝트에 대한 문의 사항이 있으면 htyvv@naver.com 으로 연락해 주세요.
