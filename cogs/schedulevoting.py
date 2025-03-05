@@ -10,7 +10,7 @@ class ScheduleVoting(commands.Cog):
 
     @commands.hybrid_command(
         name="내전일정생성", 
-        description="투표할 날짜들을 쉼표로 구분하여 입력 (예: 2025-03-05, 2025-03-06, 2025-03-07)"
+        description="투표할 날짜들을 쉼표로 구분하여 입력합니다. 예를 들어, `/내전일정생성 2025-03-05, 2025-03-06, 2025-03-07`을 입력하면 해당 날짜들에 대한 투표가 생성됩니다."
     )
     async def create_schedule_poll(self, ctx: commands.Context, dates: str):
         # 입력된 날짜 처리
@@ -62,7 +62,7 @@ class ScheduleVoting(commands.Cog):
 
     @commands.hybrid_command(
         name="투표마감", 
-        description="롤 내전 날짜 투표를 마감하고 결과를 발표합니다"
+        description="롤 내전 날짜 투표를 마감하고 결과를 발표합니다. 예를 들어, `/투표마감`을 입력하면 가장 많은 표를 받은 날짜가 내전 일정으로 확정됩니다."
     )
     async def close_vote(self, ctx: commands.Context):
         # 투표 결과 조회

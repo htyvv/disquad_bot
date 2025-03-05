@@ -38,7 +38,7 @@ class ParticipantManagement(commands.Cog):
 
     @commands.hybrid_command(
         name="참가", 
-        description="롤 내전 참가 신청을 합니다"
+        description="롤 내전 참가 신청을 합니다. 예를 들어, `/참가`를 입력하면 현재 확정된 내전 일정에 참가 신청이 완료됩니다. 이미 신청한 경우, 오류 메시지가 표시됩니다."
     )
     async def register_participant(self, ctx: commands.Context):
         # 현재 확정된 가장 최근 일정 조회
@@ -232,7 +232,7 @@ class ParticipantManagement(commands.Cog):
 
     @commands.hybrid_command(
         name="경기결과",
-        description="경기가 끝난 후 승리한 팀을 입력하여 결과를 저장합니다."
+        description="경기가 끝난 후 승리한 팀을 입력하여 결과를 저장합니다. 예를 들어, `/경기결과 1`을 입력하면 팀 1이 승리한 것으로 기록됩니다."
     )
     async def record_match_result(self, ctx: commands.Context, winning_team: str):
         # 현재 확정된 가장 최근 일정 조회
@@ -257,7 +257,7 @@ class ParticipantManagement(commands.Cog):
         
     @commands.hybrid_command(
         name="승률",
-        description="플레이어의 승률을 출력합니다. 예제: /승률 user_name:준병이어머, /승률 team:1, /승률"
+        description="플레이어의 승률을 출력합니다. 예를 들어, `/승률 user_name:준병이어머`를 입력하면 해당 사용자의 승률이 표시됩니다."
     )
     async def show_win_rate(self, ctx: commands.Context, user_name: str = None, team: str = None):
         if user_name:
