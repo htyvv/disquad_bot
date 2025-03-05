@@ -46,8 +46,8 @@ class HelpCog(commands.Cog):
             for command in command_list[i:i + commands_per_embed]:
                 if command.description:
                     embed.add_field(
-                        name=f"/{command.name}",
-                        value=command.description,
+                        name=f"`/{command.name}`",
+                        value=f"\t**→** {command.description}",
                         inline=False
                     )
 
