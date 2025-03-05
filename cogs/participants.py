@@ -5,8 +5,8 @@ import random
 class ParticipantManagement(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.team_a_name = "🟢 Team A"
-        self.team_b_name = "🔴 Team B"
+        self.team_a_name = "🟢 Team 1"
+        self.team_b_name = "🔴 Team 2"
 
     async def assign_teams_and_create_embed(self, schedule_id, user_list, title):
         # 랜덤 팀 배정
@@ -227,6 +227,73 @@ class ParticipantManagement(commands.Cog):
         # 팀 배정 및 임베드 생성
         embed = await self.assign_teams_and_create_embed(schedule_id, user_list, "🎲 즉흥 팀 배정 결과")
         await ctx.send(embed=embed)
+        
+    # cogs/participants.py에 추가
 
+    @commands.hybrid_command(
+        name="경기결과",
+        description="경기가 끝난 후 승리한 팀을 입력하여 결과를 저장합니다."
+    )
+    async def record_match_result(self, ctx: commands.Context, winning_team: str):
+        # 현재 확정된 가장 최근 일정 조회
+        schedule = await self.bot.database.get_confirmed_schedule()
+
+        if not schedule:
+            await ctx.send("❌ 현재 확정된 내전 일정이 없습니다.", ephemeral=True)
+            return
+
+        schedule_id, _ = schedule
+
+        # 승리한 팀 정보 저장
+        if winning_team not in ["1", "2"]:
+            await ctx.send("❌ 유효하지 않은 팀 번호입니다. 1 또는 2를 입력하세요.", ephemeral=True)
+            return
+
+        await self.bot.database.record_match_result(schedule_id, int(winning_team))
+
+        # 경기 결과 저장 후 다음 일정 준비
+        await self.bot.database.update_schedule_status(schedule_id, 'completed')
+        await ctx.send("✅ 경기 결과가 저장되었습니다. 다음 일정을 준비할 수 있습니다.", ephemeral=True)
+        
+    @commands.hybrid_command(
+        name="승률",
+        description="플레이어의 승률을 출력합니다. 예제: /승률 user_name:준병이어머, /승률 team:1, /승률"
+    )
+    async def show_win_rate(self, ctx: commands.Context, user_name: str = None, team: str = None):
+        if user_name:
+            # 특정 사용자의 승률 조회
+            stats = await self.bot.database.get_player_stats(user_name=user_name)
+            if not stats:
+                await ctx.send(f"❌ {user_name}님의 전적이 없습니다.", ephemeral=True)
+                return
+            wins, losses = stats[0][3], stats[0][4]
+            win_rate = (wins / (wins + losses)) * 100 if (wins + losses) > 0 else 0
+            await ctx.send(f"**{user_name}**님의 승률: {win_rate:.2f}% (승리: {wins}, 패배: {losses})", ephemeral=True)
+        elif team:
+            # 특정 팀의 승률 요약
+            participants = await self.bot.database.get_participants_by_team(team)
+            if not participants:
+                await ctx.send(f"❌ {team} 팀의 전적이 없습니다.", ephemeral=True)
+                return
+            summary = []
+            for participant in participants:
+                user_name, wins, losses = participant[1], participant[3], participant[4]
+                win_rate = (wins / (wins + losses)) * 100 if (wins + losses) > 0 else 0
+                summary.append(f"{user_name}: {win_rate:.2f}% (승리: {wins}, 패배: {losses})")
+            await ctx.send("\n".join(summary), ephemeral=True)
+        else:
+            # 모든 참가자의 승률 출력
+            participants = await self.bot.database.get_all_participants_stats()
+            if not participants:
+                await ctx.send("❌ 참가자 전적이 없습니다.", ephemeral=True)
+                return
+            summary = []
+            for participant in participants:
+                user_name, wins, losses = participant[1], participant[3], participant[4]
+                win_rate = (wins / (wins + losses)) * 100 if (wins + losses) > 0 else 0
+                summary.append(f"{user_name}: {win_rate:.2f}% (승리: {wins}, 패배: {losses})")
+            await ctx.send("\n".join(summary), ephemeral=True)    
+    
+        
 async def setup(bot) -> None:
     await bot.add_cog(ParticipantManagement(bot))
