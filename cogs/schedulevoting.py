@@ -97,14 +97,15 @@ class ScheduleVoting(commands.Cog):
         embed.add_field(name="👥 투표자 목록", value=voter_text, inline=False)
         embed.add_field(
             name="📣 참가 신청",
-            value="참가를 원하시는 분들은 `/내전참가` 명령어로 참가 신청해주세요!",
+            value="참가를 원하시는 분들은 **/참가** 를 입력해주세요!",
             inline=False
         )
         
         # 참가 신청 버튼 추가
-        view = RegisterView(winner_id, winner_date, self.bot)
+        # view = RegisterView(winner_id, winner_date, self.bot)
         
-        await ctx.send(embed=embed, view=view)
+        await ctx.send(embed=embed)
+        # await ctx.send(embed=embed, view=view)
 
 # 날짜 투표용 버튼 뷰
 class ScheduleVoteView(discord.ui.View):
@@ -158,25 +159,25 @@ class ScheduleVoteButton(discord.ui.Button):
         
         await interaction.response.send_message(f"{message} \n(현재 {vote_count[0]}표)", ephemeral=True)
 
-# 내전 참가 신청 버튼 뷰
-class RegisterView(discord.ui.View):
-    def __init__(self, schedule_id, date, bot):
-        super().__init__(timeout=None)
-        self.schedule_id = schedule_id
-        self.date = date
-        self.bot = bot
+# # 내전 참가 신청 버튼 뷰
+# class RegisterView(discord.ui.View):
+#     def __init__(self, schedule_id, date, bot):
+#         super().__init__(timeout=None)
+#         self.schedule_id = schedule_id
+#         self.date = date
+#         self.bot = bot
         
-        # 참가 신청/취소 버튼 추가
-        self.add_item(discord.ui.Button(
-            label="참가 신청",
-            style=discord.ButtonStyle.success,
-            custom_id=f"register_{schedule_id}"
-        ))
-        self.add_item(discord.ui.Button(
-            label="참가 취소",
-            style=discord.ButtonStyle.danger,
-            custom_id=f"unregister_{schedule_id}"
-        ))
+#         # 참가 신청/취소 버튼 추가
+#         self.add_item(discord.ui.Button(
+#             label="참가",
+#             style=discord.ButtonStyle.success,
+#             custom_id=f"register_{schedule_id}"
+#         ))
+#         self.add_item(discord.ui.Button(
+#             label="불참",
+#             style=discord.ButtonStyle.danger,
+#             custom_id=f"unregister_{schedule_id}"
+#         ))
 
 async def setup(bot) -> None:
     await bot.add_cog(ScheduleVoting(bot))

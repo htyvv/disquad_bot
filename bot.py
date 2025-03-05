@@ -190,6 +190,7 @@ class DiscordBot(commands.Bot):
         self.database = DatabaseManager(
             connection=await aiosqlite.connect(self.DB_PATH)
         )
+        await self.tree.sync()
 
     async def on_message(self, message: discord.Message) -> None:
         """

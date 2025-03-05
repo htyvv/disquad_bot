@@ -31,6 +31,16 @@ def check_database(db_path):
             else:
                 print("  (테이블이 비어 있습니다)")
 
+    def execute_sql_query(conn, query):
+        cursor = conn.cursor()
+        try:
+            cursor.execute(query)
+            conn.commit()
+            return cursor.fetchall()
+        except sqlite3.Error as e:
+            print(f"SQL 오류 발생: {e}")
+            return None
+    
     # 연결 종료
     conn.close()
 
