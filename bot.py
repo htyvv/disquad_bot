@@ -134,6 +134,7 @@ class DiscordBot(commands.Bot):
         self.SCHEMA_FILE_NAME = "schema.sql"
         self.DB_PATH = self.ROOT_DIR / "database" / self.DB_FILE_NAME
         self.SCHEMA_PATH = self.ROOT_DIR / "database" / self.SCHEMA_FILE_NAME
+        self.default_activity = discord.CustomActivity(name="✋ DisQuadBot by 허태")
 
     async def init_db(self) -> None:
         async with aiosqlite.connect(self.DB_PATH) as db:
@@ -158,19 +159,32 @@ class DiscordBot(commands.Bot):
                         f"Failed to load extension {cog_name}\n❌ {exception}"
                     )
 
-    @tasks.loop(minutes=1.0)
-    async def status_task(self) -> None:
-        """
-        Setup the game status task of the bot.
-        """
-        statuses = ["with you!", "with Krypton!", "with humans!"]
-        await self.change_presence(activity=discord.Game(random.choice(statuses)))
+    # @tasks.loop(minutes=1.0)
+    # async def status_task(self) -> None:
+    #     """
+    #     Setup the game status task of the bot.
+    #     """
+    #     statuses = ["with you!", "with Krypton!", "with humans!"]
+    #     await self.change_presence(activity=discord.Game(random.choice(statuses)))
 
-    @status_task.before_loop
-    async def before_status_task(self) -> None:
-        """
-        Before starting the status changing task, we make sure the bot is ready
-        """
+    # @status_task.before_loop
+    # async def before_status_task(self) -> None:
+    #     await self.wait_until_ready()
+
+    @tasks.loop(minutes=30.0)
+    async def update_nicknames(self) -> None:
+        for guild in self.guilds:
+            for member in guild.members:
+                # 데이터베이스에서 닉네임 업데이트
+                async with self.database.connection.cursor() as cursor:
+                    await cursor.execute(
+                        'UPDATE participants SET user_name = ? WHERE user_id = ?',
+                        (member.display_name, member.id)
+                    )
+                await self.database.connection.commit()
+
+    @update_nicknames.before_loop
+    async def before_update_nicknames(self):
         await self.wait_until_ready()
 
     async def setup_hook(self) -> None:
@@ -186,11 +200,32 @@ class DiscordBot(commands.Bot):
         self.logger.info("-------------------")
         await self.init_db()
         await self.load_cogs()
-        self.status_task.start()
+        # self.status_task.start()
+        self.update_nicknames.start()
         self.database = DatabaseManager(
             connection=await aiosqlite.connect(self.DB_PATH)
         )
         await self.tree.sync()
+
+    async def update_presence(self, context: Context) -> None:
+        """
+        명령어에 따라 봇 상태 메시지 자동 업데이트
+        """
+        command = context.command.qualified_name
+        command2activity = {
+            "내전일정생성": discord.CustomActivity(name="📝 내전 참가 투표 중"),
+            "팀배정": discord.CustomActivity(name="🔥 팀 분배 완료"),
+            "즉흥팀배정": discord.CustomActivity(name="🔥 팀 분배 완료"),
+            "경기결과": discord.CustomActivity(name="📅 일정생성 대기 중"),
+        }
+        
+        current_activity = command2activity.get(command)
+        if current_activity:
+            await self.change_presence(activity=current_activity)
+        
+    async def on_ready(self) -> None:
+        self.logger.info(f"{self.user.name} has connected to Discord!")
+        await self.change_presence(activity=self.default_activity)
 
     async def on_message(self, message: discord.Message) -> None:
         """
@@ -219,6 +254,7 @@ class DiscordBot(commands.Bot):
             self.logger.info(
                 f"Executed {executed_command} command by {context.author} (ID: {context.author.id}) in DMs"
             )
+        await self.update_presence(context)
 
     async def on_command_error(self, context: Context, error) -> None:
         """

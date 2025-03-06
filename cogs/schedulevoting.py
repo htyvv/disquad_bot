@@ -10,7 +10,7 @@ class ScheduleVoting(commands.Cog):
 
     @commands.hybrid_command(
         name="내전일정생성", 
-        description="투표할 날짜들을 쉼표로 구분하여 입력합니다. 예를 들어, `/내전일정생성 2025-03-05, 2025-03-06, 2025-03-07`을 입력하면 해당 날짜들에 대한 투표가 생성됩니다."
+        description="투표할 날짜들을 쉼표로 구분해 입력합니다. Ex) `/내전일정생성 2025-03-05, 2025-03-06, 2025-03-07`"
     )
     async def create_schedule_poll(self, ctx: commands.Context, dates: str):
         # 입력된 날짜 처리

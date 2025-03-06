@@ -38,7 +38,7 @@ class ParticipantManagement(commands.Cog):
 
     @commands.hybrid_command(
         name="참가", 
-        description="롤 내전 참가 신청을 합니다. 예를 들어, `/참가`를 입력하면 현재 확정된 내전 일정에 참가 신청이 완료됩니다. 이미 신청한 경우, 오류 메시지가 표시됩니다."
+        description="롤 내전 참가 신청을 합니다. 예를 들어, `/참가`를 입력하면 현재 확정된 내전 일정에 참가 신청이 완료됩니다."
     )
     async def register_participant(self, ctx: commands.Context):
         # 현재 확정된 가장 최근 일정 조회
@@ -76,7 +76,7 @@ class ParticipantManagement(commands.Cog):
         # 임베드 메시지로 참가 확인
         embed = discord.Embed(
             title="✅ 내전 참가 신청 완료",
-            description=f"**{user_name}**님, {schedule_date} 내전 참가 신청이 완료되었습니다!",
+            description=f"**{user_name}**님, {schedule_date} 내전 참가 신청이 완료되었습니다! ({participant_count[0] + 1}/10)",
             color=discord.Color.green()
         )
         await ctx.send(embed=embed, ephemeral=True)
@@ -251,9 +251,10 @@ class ParticipantManagement(commands.Cog):
 
         await self.bot.database.record_match_result(schedule_id, int(winning_team))
 
-        # 경기 결과 저장 후 다음 일정 준비
+        # 경기 결과 저장 후 다음 일정 준비 및 승리한 팀 축하 메시지
         await self.bot.database.update_schedule_status(schedule_id, 'completed')
-        await ctx.send("✅ 경기 결과가 저장되었습니다. 다음 일정을 준비할 수 있습니다.", ephemeral=True)
+        winning_team_name = self.team_a_name if winning_team == "1" else self.team_b_name
+        await ctx.send(f" 🥳🎉{winning_team_name}이 승리하셨습니다. 축하드립니다~🎊🎈\n✅ 경기 결과가 저장되었습니다.", ephemeral=False)
         
     @commands.hybrid_command(
         name="승률",
