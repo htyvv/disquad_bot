@@ -141,6 +141,16 @@ class DiscordBot(commands.Bot):
             with open(self.SCHEMA_PATH, encoding='utf-8') as file:
                 await db.executescript(file.read())
             await db.commit()
+            
+    async def init_player_stats(self) -> None:
+        for guild in self.guilds:
+            for member in guild.members:
+                # 데이터베이스에서 해당 유저의 정보가 있는지 확인
+                existing_user = await self.database.get_user_id(member.id)
+                
+                # 정보가 없으면 추가
+                if existing_user is None:
+                    await self.database.add_user(member.id, member.display_name)
 
     async def load_cogs(self) -> None:
         """
@@ -171,21 +181,21 @@ class DiscordBot(commands.Bot):
     # async def before_status_task(self) -> None:
     #     await self.wait_until_ready()
 
-    @tasks.loop(minutes=30.0)
-    async def update_nicknames(self) -> None:
-        for guild in self.guilds:
-            for member in guild.members:
-                # 데이터베이스에서 닉네임 업데이트
-                async with self.database.connection.cursor() as cursor:
-                    await cursor.execute(
-                        'UPDATE participants SET user_name = ? WHERE user_id = ?',
-                        (member.display_name, member.id)
-                    )
-                await self.database.connection.commit()
+    # @tasks.loop(minutes=30.0)
+    # async def update_nicknames(self) -> None:
+    #     for guild in self.guilds:
+    #         for member in guild.members:
+    #             # 데이터베이스에서 닉네임 업데이트
+    #             async with self.database.connection.cursor() as cursor:
+    #                 await cursor.execute(
+    #                     'UPDATE player_stats SET user_name = ? WHERE user_id = ?',
+    #                     (member.display_name, member.id)
+    #                 )
+    #             await self.database.connection.commit()
 
-    @update_nicknames.before_loop
-    async def before_update_nicknames(self):
-        await self.wait_until_ready()
+    # @update_nicknames.before_loop
+    # async def before_update_nicknames(self):
+    #     await self.wait_until_ready()
 
     async def setup_hook(self) -> None:
         """
@@ -201,10 +211,10 @@ class DiscordBot(commands.Bot):
         await self.init_db()
         await self.load_cogs()
         # self.status_task.start()
-        self.update_nicknames.start()
         self.database = DatabaseManager(
             connection=await aiosqlite.connect(self.DB_PATH)
         )
+        # self.update_nicknames.start()
         await self.tree.sync()
 
     # async def update_presence(self, context: Context) -> None:
@@ -224,6 +234,7 @@ class DiscordBot(commands.Bot):
     #         await self.change_presence(activity=current_activity)
         
     async def on_ready(self) -> None:
+        await self.init_player_stats()
         self.logger.info(f"{self.user.name} has connected to Discord!")
         await self.change_presence(activity=self.default_activity)
 
