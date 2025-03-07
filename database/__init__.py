@@ -246,14 +246,25 @@ class DatabaseManager:
                 (schedule_id, winning_team)
             )
             
-            # 참가자들의 개인 전적 업데이트
+            # 참가자들의 개인 전적 업데이트 (SQLite 호환 방식으로 수정)
             await cursor.execute('''
-            UPDATE player_stats ps
-            SET wins = wins + CASE WHEN p.team = ? THEN 1 ELSE 0 END,
-                losses = losses + CASE WHEN p.team != ? THEN 1 ELSE 0 END
-            FROM participants p
-            WHERE p.user_id = ps.user_id AND p.schedule_id = ?
-            ''', (winning_team, winning_team, schedule_id))
+            UPDATE player_stats 
+            SET wins = wins + CASE WHEN (
+                    SELECT team FROM participants 
+                    WHERE participants.user_id = player_stats.user_id 
+                    AND participants.schedule_id = ?
+                ) = ? THEN 1 ELSE 0 END,
+                losses = losses + CASE WHEN (
+                    SELECT team FROM participants 
+                    WHERE participants.user_id = player_stats.user_id 
+                    AND participants.schedule_id = ?
+                ) != ? THEN 1 ELSE 0 END
+            WHERE EXISTS (
+                SELECT 1 FROM participants 
+                WHERE participants.user_id = player_stats.user_id 
+                AND participants.schedule_id = ?
+            )
+            ''', (schedule_id, winning_team, schedule_id, winning_team, schedule_id))
             
             await self.connection.commit()
 
@@ -269,3 +280,25 @@ class DatabaseManager:
                 await cursor.execute('SELECT * FROM player_stats')
             
             return await cursor.fetchall()
+
+    async def get_user_id_by_name(self, user_name: str):
+        async with self.connection.execute(
+            "SELECT user_id FROM player_stats WHERE user_name = ?",
+            (user_name,)
+        ) as cursor:
+            result = await cursor.fetchone()
+            return result[0] if result else None
+
+    async def get_user_id(self, user_id: str):
+        async with self.connection.execute(
+            "SELECT user_id FROM player_stats WHERE user_id = ?",
+            (user_id,)
+        ) as cursor:
+            return await cursor.fetchone()
+
+    async def add_user(self, user_id: str, user_name: str):
+        async with self.connection.execute(
+            "INSERT INTO player_stats (user_id, user_name) VALUES (?, ?)",
+            (user_id, user_name)
+        ) as cursor:
+            await self.connection.commit()

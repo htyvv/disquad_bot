@@ -254,16 +254,18 @@ class ParticipantManagement(commands.Cog):
         # 경기 결과 저장 후 다음 일정 준비 및 승리한 팀 축하 메시지
         await self.bot.database.update_schedule_status(schedule_id, 'completed')
         winning_team_name = self.team_a_name if winning_team == "1" else self.team_b_name
-        await ctx.send(f" 🥳🎉{winning_team_name}이 승리하셨습니다. 축하드립니다~🎊🎈\n✅ 경기 결과가 저장되었습니다.", ephemeral=False)
+        await ctx.send(f" 🥳🎉 **{winning_team_name}**이 승리하셨습니다. 축하드립니다~ 🎊🎈\n✅ 경기 결과가 저장되었습니다.", ephemeral=False)
         
     @commands.hybrid_command(
         name="승률",
         description="플레이어의 승률을 출력합니다. 예를 들어, `/승률 user_name:준병이어머`를 입력하면 해당 사용자의 승률이 표시됩니다."
+        # description="⚠️ 구현중"
     )
     async def show_win_rate(self, ctx: commands.Context, user_name: str = None, team: str = None):
         if user_name:
             # 특정 사용자의 승률 조회
-            stats = await self.bot.database.get_player_stats(user_name=user_name)
+            user_id = self.bot.database.get_user_id_by_name(user_name=user_name)
+            stats = await self.bot.database.get_player_stats(user_id=user_id)
             if not stats:
                 await ctx.send(f"❌ {user_name}님의 전적이 없습니다.", ephemeral=True)
                 return
