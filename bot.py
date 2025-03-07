@@ -207,21 +207,21 @@ class DiscordBot(commands.Bot):
         )
         await self.tree.sync()
 
-    async def update_presence(self, context: Context) -> None:
-        """
-        명령어에 따라 봇 상태 메시지 자동 업데이트
-        """
-        command = context.command.qualified_name
-        command2activity = {
-            "내전일정생성": discord.CustomActivity(name="📝 내전 참가 투표 중"),
-            "팀배정": discord.CustomActivity(name="🔥 팀 분배 완료"),
-            "즉흥팀배정": discord.CustomActivity(name="🔥 팀 분배 완료"),
-            "경기결과": discord.CustomActivity(name="📅 일정생성 대기 중"),
-        }
+    # async def update_presence(self, context: Context) -> None:
+    #     """
+    #     명령어에 따라 봇 상태 메시지 자동 업데이트
+    #     """
+    #     command = context.command.qualified_name
+    #     command2activity = {
+    #         "내전일정생성": discord.CustomActivity(name="📝 내전 참가 투표 중"),
+    #         "팀배정": discord.CustomActivity(name="🔥 팀 분배 완료"),
+    #         "즉흥팀배정": discord.CustomActivity(name="🔥 팀 분배 완료"),
+    #         "경기결과": discord.CustomActivity(name="📅 일정생성 대기 중"),
+    #     }
         
-        current_activity = command2activity.get(command)
-        if current_activity:
-            await self.change_presence(activity=current_activity)
+    #     current_activity = command2activity.get(command)
+    #     if current_activity:
+    #         await self.change_presence(activity=current_activity)
         
     async def on_ready(self) -> None:
         self.logger.info(f"{self.user.name} has connected to Discord!")
@@ -254,7 +254,7 @@ class DiscordBot(commands.Bot):
             self.logger.info(
                 f"Executed {executed_command} command by {context.author} (ID: {context.author.id}) in DMs"
             )
-        await self.update_presence(context)
+        # await self.update_presence(context)
 
     async def on_command_error(self, context: Context, error) -> None:
         """

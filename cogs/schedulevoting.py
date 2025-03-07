@@ -1,7 +1,10 @@
 import discord
 from discord.ext import commands
 import datetime
-
+import matplotlib.pyplot as plt
+import io, base64
+import matplotlib.font_manager as fm
+import seaborn as sns
 
 class ScheduleVoting(commands.Cog):
     def __init__(self, bot):
@@ -41,6 +44,13 @@ class ScheduleVoting(commands.Cog):
             )
             return
         
+        # 기존 "voting" 상태의 일정 확인
+        existing_schedules = await self.bot.database.get_voting_schedules()
+        if existing_schedules:
+            await ctx.send("⚠️ 기존의 투표 일정이 취소되고 새로운 일정이 생성됩니다.", ephemeral=True)
+            for schedule in existing_schedules:
+                await self.bot.database.update_schedule_status(schedule[0], 'abandoned')
+        
         # 안내 메시지 생성
         embed = discord.Embed(
             title="📅 롤 내전 일정 투표",
@@ -48,7 +58,7 @@ class ScheduleVoting(commands.Cog):
             color=discord.Color.blue()
         )
         
-        embed.add_field(name="투표 가능 날짜", value="\n".join([f"📌 {date}" for date in valid_dates]), inline=False)
+        embed.add_field(name="투표 가능 날짜", value="\n".join([f"📌 **{date}**" for date in valid_dates]), inline=False)
         embed.set_footer(text="투표는 중복 선택 가능합니다. 가장 많은 표를 받은 날짜가 선정됩니다.")
         
         # 버튼 생성
@@ -59,6 +69,75 @@ class ScheduleVoting(commands.Cog):
         # 데이터베이스에 일정 후보 저장
         for date in valid_dates:
             await self.bot.database.insert_schedule(date)
+            
+    @commands.hybrid_command(
+    name="투표현황", 
+    description="현재 진행 중인 투표의 현황을 시각화하여 보여줍니다."
+    )
+    async def show_vote_status(self, ctx: commands.Context):
+        # 현재 진행 중인 투표 일정 조회
+        results = await self.bot.database.get_voting_schedules()
+        
+        if not results:
+            await ctx.send("❌ 현재 진행 중인 투표가 없습니다.", ephemeral=True)
+            return
+        
+        # 각 일정에 대한 투표 수 집계 및 참가자 목록
+        vote_counts = {}
+        participant_names = {}
+        
+        for schedule in results:
+            schedule_id = schedule[0]
+            schedule_date = schedule[1]
+            vote_count = await self.bot.database.get_vote_count(schedule_id)
+            participants = await self.bot.database.get_voters(schedule_id)  # 참가자 목록 조회
+            
+            vote_counts[schedule_date] = vote_count[0] if vote_count else 0
+            participant_names[schedule_date] = [voter[0] for voter in participants]  # 참가자 이름 저장
+        
+        # 바 차트를 내림차순으로 정렬
+        sorted_votes = sorted(vote_counts.items(), key=lambda x: x[1], reverse=True)
+        sorted_dates, sorted_counts = zip(*sorted_votes)
+
+        font_path = "C:\\Windows\\Fonts\\malgun.ttf"
+        font_name = fm.FontProperties(fname=font_path).get_name()
+        plt.rc('font', family=font_name)
+
+        # Seaborn 스타일 설정
+        sns.set_theme(style="whitegrid")
+
+        # 차트 생성
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x=list(sorted_counts), y=list(sorted_dates), palette="Blues_d")
+        # plt.xlabel('투표 수')
+        plt.xlabel('N')
+        # plt.title('현재 투표 현황')
+        plt.title('Total Voting Count')
+        
+        # 차트를 이미지로 저장
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plt.close()
+
+        # 이미지를 Discord에 전송
+        buf.seek(0)  # 버퍼를 처음으로 되돌림
+        file = discord.File(buf, filename="vote_status.png")
+        
+        # 참가자 목록을 문자열로 변환
+        participant_info = "\n".join(
+            [f"📌 **{date}** : {vote_counts[date]}표 (참가자: {', '.join(participant_names[date]) if participant_names[date] else 'X'})" for date in sorted_dates]
+        )
+
+        # 차트를 Discord에 전송
+        embed = discord.Embed(
+            title="📊 현재 투표 현황",
+            description="각 날짜에 대한 투표 수와 참가자 목록입니다.",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="투표 항목별 참가자", value=participant_info, inline=False)
+        
+        await ctx.send(embed=embed, file=file)
 
     @commands.hybrid_command(
         name="투표마감", 
