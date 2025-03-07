@@ -302,3 +302,76 @@ class DatabaseManager:
             (user_id, user_name)
         ) as cursor:
             await self.connection.commit()
+            
+    async def create_mvp_vote(self, schedule_id, winning_team_votes=3, losing_team_votes=1, can_vote_own_team=True):
+        """MVP 투표 설정 생성"""
+        async with self.connection.cursor() as cursor:
+            await cursor.execute(
+                'INSERT INTO mvp_vote_settings (schedule_id, winning_team_votes, losing_team_votes, can_vote_own_team) VALUES (?, ?, ?, ?)',
+                (schedule_id, winning_team_votes, losing_team_votes, 1 if can_vote_own_team else 0)
+            )
+            await self.connection.commit()
+
+    async def get_mvp_vote_settings(self, schedule_id):
+        """MVP 투표 설정 조회"""
+        async with self.connection.cursor() as cursor:
+            await cursor.execute(
+                'SELECT * FROM mvp_vote_settings WHERE schedule_id = ?',
+                (schedule_id,)
+            )
+            return await cursor.fetchone()
+
+    async def record_mvp_vote(self, schedule_id, voter_id, voted_for_id, vote_count=1):
+        """MVP 투표 기록"""
+        async with self.connection.cursor() as cursor:
+            await cursor.execute(
+                'INSERT INTO mvp_votes (schedule_id, voter_id, voted_for_id, vote_count) VALUES (?, ?, ?, ?)',
+                (schedule_id, voter_id, voted_for_id, vote_count)
+            )
+            await self.connection.commit()
+
+    async def get_mvp_votes(self, schedule_id):
+        """특정 경기의 MVP 투표 결과 조회"""
+        async with self.connection.cursor() as cursor:
+            await cursor.execute('''
+                SELECT voted_for_id, SUM(vote_count) as total_votes
+                FROM mvp_votes
+                WHERE schedule_id = ?
+                GROUP BY voted_for_id
+                ORDER BY total_votes DESC
+            ''', (schedule_id,))
+            return await cursor.fetchall()
+
+    async def get_today_mvp(self, date):
+        """오늘의 MVP 조회"""
+        async with self.connection.cursor() as cursor:
+            await cursor.execute('''
+                SELECT v.voted_for_id, p.user_name, SUM(v.vote_count) as total_votes
+                FROM mvp_votes v
+                JOIN schedules s ON v.schedule_id = s.id
+                JOIN participants p ON v.voted_for_id = p.user_id AND p.schedule_id = v.schedule_id
+                WHERE s.date = ?
+                GROUP BY v.voted_for_id
+                ORDER BY total_votes DESC
+                LIMIT 1
+            ''', (date,))
+            return await cursor.fetchone()
+
+    async def record_mvp_award(self, date, user_id, user_name, total_votes):
+        """MVP 수상 기록"""
+        async with self.connection.cursor() as cursor:
+            await cursor.execute(
+                'INSERT INTO mvp_awards (date, user_id, user_name, total_votes) VALUES (?, ?, ?, ?)',
+                (date, user_id, user_name, total_votes)
+            )
+            await self.connection.commit()
+
+    async def check_user_voted(self, schedule_id, voter_id):
+        """사용자가 이미 투표했는지 확인"""
+        async with self.connection.cursor() as cursor:
+            await cursor.execute(
+                'SELECT SUM(vote_count) FROM mvp_votes WHERE schedule_id = ? AND voter_id = ?',
+                (schedule_id, voter_id)
+            )
+            result = await cursor.fetchone()
+            return result[0] if result[0] is not None else 0

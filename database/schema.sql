@@ -55,3 +55,35 @@ CREATE TABLE IF NOT EXISTS `player_stats` (
   `losses` INTEGER DEFAULT 0,
   UNIQUE(`user_id`)
 );
+
+-- MVP 투표 설정 테이블
+CREATE TABLE IF NOT EXISTS `mvp_vote_settings` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `schedule_id` INTEGER,
+  `winning_team_votes` INTEGER DEFAULT 2,
+  `losing_team_votes` INTEGER DEFAULT 1,
+  `can_vote_own_team` BOOLEAN DEFAULT 1,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`schedule_id`) REFERENCES `schedules`(`id`)
+);
+
+-- MVP 투표 테이블
+CREATE TABLE IF NOT EXISTS `mvp_votes` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `schedule_id` INTEGER,
+  `voter_id` TEXT,
+  `voted_for_id` TEXT,
+  `vote_count` INTEGER DEFAULT 1,
+  `vote_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`schedule_id`) REFERENCES `schedules`(`id`)
+);
+
+-- MVP 수상 기록 테이블
+CREATE TABLE IF NOT EXISTS `mvp_awards` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `date` TEXT,
+  `user_id` TEXT,
+  `user_name` TEXT,
+  `total_votes` INTEGER,
+  `award_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
