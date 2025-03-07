@@ -117,6 +117,7 @@ class DiscordBot(commands.Bot):
             command_prefix=commands.when_mentioned_or(config["prefix"]),
             intents=intents,
             help_command=None,
+            description="이 봇은 롤 내전 일정 관리 및 경기 결과 저장과 MVP 투표 기능을 제공합니다."
         )
         """
         This creates custom bot variables so that we can access these variables in cogs more easily.
@@ -216,6 +217,7 @@ class DiscordBot(commands.Bot):
         )
         # self.update_nicknames.start()
         await self.tree.sync()
+        await self.set_avatar("asset/avatar.png") 
 
     # async def update_presence(self, context: Context) -> None:
     #     """
@@ -322,6 +324,13 @@ class DiscordBot(commands.Bot):
             await context.send(embed=embed)
         else:
             raise error
+
+    async def set_avatar(self, avatar_path: str) -> None:
+        """Set the bot's avatar."""
+        with open(avatar_path, 'rb') as avatar_file:
+            avatar_data = avatar_file.read()
+            await self.user.edit(avatar=avatar_data)
+            self.logger.info("Avatar has been updated.")
 
 
 # .env 파일 경로를 Path 객체로 처리
